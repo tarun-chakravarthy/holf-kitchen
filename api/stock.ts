@@ -1,7 +1,7 @@
-import type { VercelRequest, VercelResponse } from "./_lib/vercelTypes";
-import { readState, writeState, StorageNotConfiguredError } from "./_lib/store";
-import { isValidKitchenState } from "./_lib/validate";
-import { createDefaultState } from "../shared/kitchenDefaults";
+import type { VercelRequest, VercelResponse } from "./_lib/vercelTypes.js";
+import { readState, writeState, StorageNotConfiguredError } from "./_lib/store.js";
+import { isValidKitchenState } from "./_lib/validate.js";
+import { createDefaultState } from "../shared/kitchenDefaults.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   try {

@@ -1,4 +1,4 @@
-import type { KitchenState } from "../../shared/types";
+import type { KitchenState } from "../../shared/types.js";
 
 export function isValidKitchenState(value: unknown): value is KitchenState {
   if (!value || typeof value !== "object") return false;
