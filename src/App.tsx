@@ -6,7 +6,18 @@ import { useKitchenStorage } from "./useKitchenStorage";
 import { exportOrderCsv } from "./exportCsv";
 import { ItemRow } from "./components/ItemRow";
 import { CategoryTab } from "./components/CategoryTab";
+import { HowToUse } from "./components/HowToUse";
 import { styles } from "./styles";
+
+const GUIDE_DISMISSED_KEY = "kitchen-guide-dismissed";
+
+function loadGuideVisible(): boolean {
+  try {
+    return localStorage.getItem(GUIDE_DISMISSED_KEY) !== "1";
+  } catch {
+    return true;
+  }
+}
 
 function withDerived(item: StockItem): DerivedStockItem {
   const status = computeStatus(item.current, item.required);
@@ -31,6 +42,16 @@ export default function App() {
   const [newCurrent, setNewCurrent] = useState("");
   const [orderList, setOrderList] = useState<OrderRecord | null>(null);
   const [copied, setCopied] = useState(false);
+  const [showGuide, setShowGuide] = useState(loadGuideVisible);
+
+  const dismissGuide = () => {
+    setShowGuide(false);
+    try {
+      localStorage.setItem(GUIDE_DISMISSED_KEY, "1");
+    } catch {
+      // best-effort only — losing this preference just means the guide reappears next visit
+    }
+  };
 
   const patch = (id: string, fields: Partial<StockItem>) =>
     updateItems(items.map((it) => (it.id === id ? { ...it, ...fields } : it)));
@@ -112,8 +133,13 @@ export default function App() {
           {outCount > 0 && <div style={styles.urgentPill}>{outCount} out of stock</div>}
           {unsetCount > 0 && <div style={styles.unsetPill}>{unsetCount} need a par level</div>}
           <div style={styles.savePill}>{SYNC_LABEL[status]}</div>
+          <button style={styles.helpBtn} onClick={() => setShowGuide(true)} title="How to use this sheet" aria-label="How to use this sheet">
+            ?
+          </button>
         </div>
       </header>
+
+      {showGuide && <HowToUse onClose={dismissGuide} />}
 
       <nav style={styles.tabs}>
         <CategoryTab
