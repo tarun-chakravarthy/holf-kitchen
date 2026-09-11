@@ -1,7 +1,7 @@
 import { put, get as getBlob } from "@vercel/blob";
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import type { KitchenState } from "../../shared/types";
+import type { KitchenState } from "../../shared/types.js";
 
 const BLOB_PATHNAME = "kitchen-stock-state.json";
 const DEV_STATE_FILE = path.join(process.cwd(), ".data", "kitchen-stock-state.json");

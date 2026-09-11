@@ -1,4 +1,4 @@
-import type { CategoryId, CategoryLabels, KitchenState, StockItem } from "./types";
+import type { CategoryId, CategoryLabels, KitchenState, StockItem } from "./types.js";
 
 export const CATEGORY_ORDER: CategoryId[] = ["meats", "cheese", "sauces", "supplies"];
 
