@@ -6,12 +6,38 @@ import type { KitchenState } from "../../shared/types.js";
 const BLOB_PATHNAME = "kitchen-stock-state.json";
 const DEV_STATE_FILE = path.join(process.cwd(), ".data", "kitchen-stock-state.json");
 
+// Non-secret diagnostics only (booleans + Vercel's own public platform metadata,
+// never the token value itself) so a stuck deployment can be debugged from the
+// error response alone, without dashboard or log access. Remove once resolved.
+export interface StorageDebugInfo {
+  hasBlobToken: boolean;
+  hasBlobStoreId: boolean;
+  isRunningOnVercel: boolean;
+  vercelEnv: string | null;
+  vercelRegion: string | null;
+  deploymentId: string | null;
+}
+
+function getStorageDebugInfo(): StorageDebugInfo {
+  return {
+    hasBlobToken: hasBlobToken(),
+    hasBlobStoreId: Boolean(process.env.BLOB_STORE_ID),
+    isRunningOnVercel: isRunningOnVercel(),
+    vercelEnv: process.env.VERCEL_ENV ?? null,
+    vercelRegion: process.env.VERCEL_REGION ?? null,
+    deploymentId: process.env.VERCEL_DEPLOYMENT_ID ?? null,
+  };
+}
+
 export class StorageNotConfiguredError extends Error {
+  debug: StorageDebugInfo;
+
   constructor() {
     super(
       "Vercel Blob storage is not configured. In the Vercel dashboard, go to Storage → Create Database → Blob, then redeploy.",
     );
     this.name = "StorageNotConfiguredError";
+    this.debug = getStorageDebugInfo();
   }
 }
 
