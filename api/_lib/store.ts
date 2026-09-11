@@ -6,8 +6,24 @@ import type { KitchenState } from "../../shared/types";
 const BLOB_PATHNAME = "kitchen-stock-state.json";
 const DEV_STATE_FILE = path.join(process.cwd(), ".data", "kitchen-stock-state.json");
 
+export class StorageNotConfiguredError extends Error {
+  constructor() {
+    super(
+      "Vercel Blob storage is not configured. In the Vercel dashboard, go to Storage → Create Database → Blob, then redeploy.",
+    );
+    this.name = "StorageNotConfiguredError";
+  }
+}
+
 function hasBlobToken(): boolean {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
+
+// Vercel's runtime always sets VERCEL=1, including in Preview and Production.
+// Its filesystem is read-only outside /tmp, so the local JSON-file fallback
+// below must only ever run on a developer's own machine, never on Vercel.
+function isRunningOnVercel(): boolean {
+  return Boolean(process.env.VERCEL);
 }
 
 export async function readState(): Promise<KitchenState | null> {
@@ -16,6 +32,10 @@ export async function readState(): Promise<KitchenState | null> {
     if (!result) return null;
     const text = await new Response(result.stream).text();
     return JSON.parse(text) as KitchenState;
+  }
+
+  if (isRunningOnVercel()) {
+    throw new StorageNotConfiguredError();
   }
 
   try {
@@ -37,6 +57,10 @@ export async function writeState(state: KitchenState): Promise<void> {
       allowOverwrite: true,
     });
     return;
+  }
+
+  if (isRunningOnVercel()) {
+    throw new StorageNotConfiguredError();
   }
 
   await fs.mkdir(path.dirname(DEV_STATE_FILE), { recursive: true });
