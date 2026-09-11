@@ -22,10 +22,6 @@ export function ratioOf(current: number, required: number | ""): number {
   return Math.min(1, clamp0(Number(current) || 0) / r);
 }
 
-export function shouldAutoOrder(status: Status): boolean {
-  return status === "out" || status === "low";
-}
-
 export function formatOrderText(record: OrderRecord, categoryLabels: CategoryLabels): string {
   const lines = [`ORDER LIST — ${new Date(record.timestamp).toLocaleString()}`, ""];
   for (const cat of CATEGORY_ORDER) {

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { CategoryId, DerivedStockItem, OrderRecord, StockItem } from "./types";
 import { CATEGORY_ORDER, STATUS_META } from "./constants";
-import { computeStatus, shouldAutoOrder, uid, formatOrderText } from "./utils";
+import { computeStatus, uid, formatOrderText } from "./utils";
 import { useKitchenStorage } from "./useKitchenStorage";
 import { exportOrderCsv } from "./exportCsv";
 import { ItemRow } from "./components/ItemRow";
@@ -10,8 +10,7 @@ import { styles } from "./styles";
 
 function withDerived(item: StockItem): DerivedStockItem {
   const status = computeStatus(item.current, item.required);
-  const autoChecked = shouldAutoOrder(status);
-  const checked = item.checkedOverride === null ? autoChecked : item.checkedOverride;
+  const checked = item.checkedOverride === null ? true : item.checkedOverride;
   return { ...item, status, checked };
 }
 
