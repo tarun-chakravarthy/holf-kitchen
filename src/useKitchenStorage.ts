@@ -1,31 +1,70 @@
-import { useCallback, useState } from "react";
-import type { StockItem } from "./types";
-import { createSeedItems } from "./constants";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { CategoryId, KitchenState, StockItem } from "./types";
+import { createDefaultState } from "./constants";
 
-const STORAGE_KEY = "kitchen-inventory-items-v1";
+export type SyncStatus = "loading" | "saving" | "saved" | "error";
 
-function loadItems(): StockItem[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as StockItem[]) : createSeedItems();
-  } catch {
-    return createSeedItems();
-  }
-}
+const STOCK_ENDPOINT = "/api/stock";
 
 export function useKitchenStorage() {
-  const [items, setItems] = useState<StockItem[]>(loadItems);
-  const [syncError, setSyncError] = useState(false);
+  const [state, setState] = useState<KitchenState>(createDefaultState);
+  const [status, setStatus] = useState<SyncStatus>("loading");
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const updateItems = useCallback((next: StockItem[]) => {
-    setItems(next);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      setSyncError(false);
-    } catch {
-      setSyncError(true);
-    }
+  useEffect(() => {
+    let cancelled = false;
+    fetch(STOCK_ENDPOINT)
+      .then((res) => (res.ok ? (res.json() as Promise<KitchenState>) : Promise.reject(new Error("load failed"))))
+      .then((data) => {
+        if (!cancelled) {
+          setState(data);
+          setStatus("saved");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setStatus("error");
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  return { items, updateItems, syncError };
+  const persist = useCallback((next: KitchenState) => {
+    setStatus("saving");
+    fetch(STOCK_ENDPOINT, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(next),
+    })
+      .then((res) => setStatus(res.ok ? "saved" : "error"))
+      .catch(() => setStatus("error"));
+  }, []);
+
+  const updateState = useCallback(
+    (next: KitchenState) => {
+      setState(next);
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(() => persist(next), 400);
+    },
+    [persist],
+  );
+
+  const updateItems = useCallback(
+    (items: StockItem[]) => updateState({ ...state, items }),
+    [state, updateState],
+  );
+
+  const renameCategory = useCallback(
+    (id: CategoryId, label: string) =>
+      updateState({ ...state, categoryLabels: { ...state.categoryLabels, [id]: label } }),
+    [state, updateState],
+  );
+
+  return {
+    items: state.items,
+    categoryLabels: state.categoryLabels,
+    updateItems,
+    renameCategory,
+    status,
+  };
 }

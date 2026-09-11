@@ -1,10 +1,11 @@
 import { useState } from "react";
-import type { Category, DerivedStockItem, OrderRecord, StockItem } from "./types";
+import type { CategoryId, DerivedStockItem, OrderRecord, StockItem } from "./types";
 import { CATEGORY_ORDER, STATUS_META } from "./constants";
 import { computeStatus, shouldAutoOrder, uid, formatOrderText } from "./utils";
 import { useKitchenStorage } from "./useKitchenStorage";
 import { exportOrderCsv } from "./exportCsv";
 import { ItemRow } from "./components/ItemRow";
+import { CategoryTab } from "./components/CategoryTab";
 import { styles } from "./styles";
 
 function withDerived(item: StockItem): DerivedStockItem {
@@ -14,10 +15,17 @@ function withDerived(item: StockItem): DerivedStockItem {
   return { ...item, status, checked };
 }
 
+const SYNC_LABEL: Record<string, string> = {
+  loading: "loading…",
+  saving: "saving…",
+  saved: "saved",
+  error: "sync issue",
+};
+
 export default function App() {
-  const { items, updateItems, syncError } = useKitchenStorage();
-  const [activeCategory, setActiveCategory] = useState<Category | "All">("All");
-  const [addingTo, setAddingTo] = useState<Category | null>(null);
+  const { items, categoryLabels, updateItems, renameCategory, status } = useKitchenStorage();
+  const [activeCategory, setActiveCategory] = useState<CategoryId | "All">("All");
+  const [addingTo, setAddingTo] = useState<CategoryId | null>(null);
   const [newName, setNewName] = useState("");
   const [newUnit, setNewUnit] = useState("");
   const [newRequired, setNewRequired] = useState("");
@@ -30,7 +38,7 @@ export default function App() {
 
   const removeItem = (id: string) => updateItems(items.filter((it) => it.id !== id));
 
-  const addItem = (category: Category) => {
+  const addItem = (categoryId: CategoryId) => {
     if (!newName.trim()) return;
     updateItems([
       ...items,
@@ -40,7 +48,7 @@ export default function App() {
         unit: newUnit.trim() || "units",
         required: newRequired === "" ? "" : Number(newRequired),
         current: newCurrent === "" ? 0 : Number(newCurrent),
-        category,
+        categoryId,
         note: "",
         locked: newRequired !== "",
         checkedOverride: null,
@@ -67,7 +75,7 @@ export default function App() {
         current: it.current,
         needed: Math.max(0, (Number(it.required) || 0) - (Number(it.current) || 0)),
         status: it.status,
-        category: it.category,
+        categoryId: it.categoryId,
       })),
     };
     setOrderList(record);
@@ -76,7 +84,7 @@ export default function App() {
   const copyOrder = async () => {
     if (!orderList) return;
     try {
-      await navigator.clipboard.writeText(formatOrderText(orderList));
+      await navigator.clipboard.writeText(formatOrderText(orderList, categoryLabels));
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
     } catch {
@@ -86,7 +94,7 @@ export default function App() {
 
   const grouped = CATEGORY_ORDER.map((cat) => ({
     category: cat,
-    rows: derivedItems.filter((it) => it.category === cat),
+    rows: derivedItems.filter((it) => it.categoryId === cat),
   }));
   const visibleGroups = activeCategory === "All" ? grouped : grouped.filter((g) => g.category === activeCategory);
 
@@ -104,19 +112,26 @@ export default function App() {
         <div style={styles.headerRight}>
           {outCount > 0 && <div style={styles.urgentPill}>{outCount} out of stock</div>}
           {unsetCount > 0 && <div style={styles.unsetPill}>{unsetCount} need a par level</div>}
-          <div style={styles.savePill}>{syncError ? "sync issue" : "saved"}</div>
+          <div style={styles.savePill}>{SYNC_LABEL[status]}</div>
         </div>
       </header>
 
       <nav style={styles.tabs}>
-        {(["All", ...CATEGORY_ORDER] as const).map((cat) => (
-          <button
+        <CategoryTab
+          label="All"
+          active={activeCategory === "All"}
+          renamable={false}
+          onSelect={() => setActiveCategory("All")}
+        />
+        {CATEGORY_ORDER.map((cat) => (
+          <CategoryTab
             key={cat}
-            onClick={() => setActiveCategory(cat)}
-            style={{ ...styles.tab, ...(activeCategory === cat ? styles.tabActive : {}) }}
-          >
-            {cat}
-          </button>
+            label={categoryLabels[cat]}
+            active={activeCategory === cat}
+            renamable
+            onSelect={() => setActiveCategory(cat)}
+            onRename={(nextLabel) => renameCategory(cat, nextLabel)}
+          />
         ))}
       </nav>
 
@@ -129,7 +144,7 @@ export default function App() {
       <main style={styles.main}>
         {visibleGroups.map((group) => (
           <section key={group.category} style={styles.section}>
-            <h2 style={styles.sectionTitle}>{group.category}</h2>
+            <h2 style={styles.sectionTitle}>{categoryLabels[group.category]}</h2>
             <div style={styles.rowsWrap}>
               {group.rows.map((it) => (
                 <ItemRow key={it.id} item={it} onPatch={(f) => patch(it.id, f)} onRemove={() => removeItem(it.id)} />
@@ -183,7 +198,7 @@ export default function App() {
               </div>
             ) : (
               <button style={styles.addTrigger} onClick={() => setAddingTo(group.category)}>
-                + Add item to {group.category}
+                + Add item to {categoryLabels[group.category]}
               </button>
             )}
           </section>
@@ -219,11 +234,11 @@ export default function App() {
               </div>
             </div>
             <div style={styles.ticketDivider} />
-            {CATEGORY_ORDER.filter((cat) => orderList.items.some((it) => it.category === cat)).map((cat) => (
+            {CATEGORY_ORDER.filter((cat) => orderList.items.some((it) => it.categoryId === cat)).map((cat) => (
               <div key={cat} style={{ marginBottom: 14 }}>
-                <div style={styles.ticketCategory}>{cat}</div>
+                <div style={styles.ticketCategory}>{categoryLabels[cat]}</div>
                 {orderList.items
-                  .filter((it) => it.category === cat)
+                  .filter((it) => it.categoryId === cat)
                   .map((it, i) => (
                     <div key={i} style={styles.ticketRow}>
                       <span>{it.name}</span>
@@ -239,7 +254,7 @@ export default function App() {
               <button style={styles.ticketCopy} onClick={copyOrder}>
                 {copied ? "Copied ✓" : "Copy list"}
               </button>
-              <button style={styles.ticketExport} onClick={() => exportOrderCsv(orderList)}>
+              <button style={styles.ticketExport} onClick={() => exportOrderCsv(orderList, categoryLabels)}>
                 Export CSV
               </button>
             </div>
