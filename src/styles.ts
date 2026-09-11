@@ -12,6 +12,7 @@ export const styles: Record<string, CSSProperties> = {
   tabs: { display: "flex", gap: 6, padding: "12px 16px 4px", overflowX: "auto" },
   tab: { background: "var(--card)", border: "1px solid var(--border)", color: "var(--muted)", borderRadius: 20, padding: "6px 13px", fontSize: 13, whiteSpace: "nowrap" },
   tabActive: { background: "var(--header)", color: "#FFFFFF", borderColor: "var(--header)" },
+  tabInput: { border: "1.5px solid var(--accent)", borderRadius: 20, padding: "6px 13px", fontSize: 13, minWidth: 90 },
   columnHeaders: { display: "flex", padding: "8px 20px 2px", gap: 12, fontSize: 10.5, fontWeight: 600, color: "var(--muted)", letterSpacing: 0.4, textTransform: "uppercase" },
   colHeadLeft: { flex: "1 1 0", paddingLeft: 34 },
   colHeadMiddle: { width: 64, textAlign: "center" },

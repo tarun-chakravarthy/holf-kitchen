@@ -1,22 +1,8 @@
-export type Category =
-  | "Meats & Prep"
-  | "Cheese & Cold"
-  | "Sauces"
-  | "Supplies & Extras";
+export type { CategoryId, CategoryLabels, KitchenState, StockItem } from "../shared/types";
+
+import type { CategoryId, StockItem } from "../shared/types";
 
 export type Status = "out" | "low" | "medium" | "good" | "unset";
-
-export interface StockItem {
-  id: string;
-  name: string;
-  unit: string;
-  required: number | "";
-  current: number;
-  category: Category;
-  note: string;
-  locked: boolean;
-  checkedOverride: boolean | null;
-}
 
 export interface DerivedStockItem extends StockItem {
   status: Status;
@@ -30,7 +16,7 @@ export interface OrderLine {
   current: number;
   needed: number;
   status: Status;
-  category: Category;
+  categoryId: CategoryId;
 }
 
 export interface OrderRecord {

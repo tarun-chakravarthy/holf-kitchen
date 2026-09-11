@@ -1,11 +1,11 @@
-import type { OrderRecord } from "./types";
+import type { CategoryLabels, OrderRecord } from "./types";
 import { STATUS_META } from "./constants";
 
-export function exportOrderCsv(record: OrderRecord): void {
+export function exportOrderCsv(record: OrderRecord, categoryLabels: CategoryLabels): void {
   const rows = [["Category", "Item", "Current", "Required", "Order qty", "Unit", "Status"]];
   for (const it of record.items) {
     rows.push([
-      it.category,
+      categoryLabels[it.categoryId],
       it.name,
       String(it.current),
       String(it.required),

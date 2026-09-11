@@ -1,4 +1,4 @@
-import type { OrderRecord, Status } from "./types";
+import type { CategoryLabels, OrderRecord, Status } from "./types";
 import { CATEGORY_ORDER } from "./constants";
 
 export const uid = (): string => Math.random().toString(36).slice(2, 10);
@@ -26,12 +26,12 @@ export function shouldAutoOrder(status: Status): boolean {
   return status === "out" || status === "low";
 }
 
-export function formatOrderText(record: OrderRecord): string {
+export function formatOrderText(record: OrderRecord, categoryLabels: CategoryLabels): string {
   const lines = [`ORDER LIST — ${new Date(record.timestamp).toLocaleString()}`, ""];
   for (const cat of CATEGORY_ORDER) {
-    const rows = record.items.filter((it) => it.category === cat);
+    const rows = record.items.filter((it) => it.categoryId === cat);
     if (rows.length === 0) continue;
-    lines.push(cat.toUpperCase());
+    lines.push(categoryLabels[cat].toUpperCase());
     for (const it of rows) {
       lines.push(`  - ${it.name}: ${it.current}/${it.required} ${it.unit} (need ${it.needed})`);
     }
