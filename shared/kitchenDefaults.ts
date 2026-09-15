@@ -85,22 +85,28 @@ const SEED_ITEMS: SeedItem[] = [
     categoryId: "supplies",
     note: "Big bottles",
   },
-  { name: "Coca-Cola Classic", unit: "bottles", required: 4, current: 2, categoryId: "drinks" },
-  { name: "Coca-Cola Zero Sugar", unit: "bottles", required: 4, current: 3, categoryId: "drinks" },
-  { name: "Coca-Cola Vanilla", unit: "bottles", required: 3, current: 1, categoryId: "drinks" },
-  { name: "Sprite", unit: "bottles", required: 4, current: 4, categoryId: "drinks" },
-  { name: "Fanta", unit: "bottles", required: 4, current: 2, categoryId: "drinks" },
-  { name: "Kirks Originals (assorted)", unit: "bottles", required: 2, current: 1, categoryId: "drinks" },
-  { name: "Coca-Cola (cans)", unit: "cans", required: 4, current: 3, categoryId: "drinks" },
-  { name: "Fanta (cans)", unit: "cans", required: 3, current: 1, categoryId: "drinks" },
-  { name: "Mount Franklin Spring Water", unit: "bottles", required: 6, current: 4, categoryId: "drinks" },
-  { name: "Mount Franklin Lightly Sparkling", unit: "bottles", required: 2, current: 1, categoryId: "drinks" },
-  { name: "Pump Spring Water (assorted)", unit: "bottles", required: 3, current: 2, categoryId: "drinks" },
-  { name: "Monster Energy (assorted)", unit: "cans", required: 6, current: 3, categoryId: "drinks" },
-  { name: "Mother Energy", unit: "cans", required: 3, current: 1, categoryId: "drinks" },
-  { name: "Powerade (assorted)", unit: "bottles", required: 4, current: 2, categoryId: "drinks" },
-  { name: "Fuze Tea (assorted)", unit: "bottles", required: 3, current: 2, categoryId: "drinks" },
+  { name: "Coca-Cola Classic", unit: "packs", required: 3, current: 1, categoryId: "drinks" },
+  { name: "Coca-Cola Zero Sugar", unit: "packs", required: 3, current: 2, categoryId: "drinks" },
+  { name: "Coca-Cola Vanilla", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Sprite", unit: "packs", required: 3, current: 3, categoryId: "drinks" },
+  { name: "Fanta", unit: "packs", required: 3, current: 1, categoryId: "drinks" },
+  { name: "Kirks Originals (assorted)", unit: "packs", required: 1, current: 1, categoryId: "drinks" },
+  { name: "Coca-Cola (cans)", unit: "packs", required: 3, current: 2, categoryId: "drinks" },
+  { name: "Fanta (cans)", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Mount Franklin Spring Water", unit: "packs", required: 4, current: 3, categoryId: "drinks" },
+  { name: "Mount Franklin Lightly Sparkling", unit: "packs", required: 1, current: 1, categoryId: "drinks" },
+  { name: "Pump Water Blue", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Pump Water Pink", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Monster Energy (assorted)", unit: "packs", required: 4, current: 2, categoryId: "drinks" },
+  { name: "Mother Energy", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Powerade Blue", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Powerade Berry", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Fuze Tea (assorted)", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
 ];
+
+// Names introduced in this update, used to patch stores that already ran the
+// earlier drinks migration (see migrateState in useKitchenStorage.ts).
+export const DRINK_VARIANT_ADDITIONS = ["Pump Water Blue", "Pump Water Pink", "Powerade Blue", "Powerade Berry"];
 
 export function createSeedItems(): StockItem[] {
   return SEED_ITEMS.map(hydrateSeedItem);
@@ -108,6 +114,10 @@ export function createSeedItems(): StockItem[] {
 
 export function createDrinksSeedItems(): StockItem[] {
   return SEED_ITEMS.filter((it) => it.categoryId === "drinks").map(hydrateSeedItem);
+}
+
+export function createDrinkVariantAdditions(): StockItem[] {
+  return SEED_ITEMS.filter((it) => DRINK_VARIANT_ADDITIONS.includes(it.name)).map(hydrateSeedItem);
 }
 
 export function createDefaultState(): KitchenState {

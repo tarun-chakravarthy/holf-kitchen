@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CategoryId, KitchenState, StockItem } from "./types";
-import { createDefaultState, createDrinksSeedItems, DEFAULT_CATEGORY_LABELS } from "./constants";
+import {
+  createDefaultState,
+  createDrinksSeedItems,
+  createDrinkVariantAdditions,
+  DEFAULT_CATEGORY_LABELS,
+} from "./constants";
 
 export type SyncStatus = "loading" | "saving" | "saved" | "error";
 
@@ -15,6 +20,33 @@ function migrateState(state: KitchenState): KitchenState {
     items: [...state.items, ...createDrinksSeedItems()],
     categoryLabels: { ...DEFAULT_CATEGORY_LABELS, ...state.categoryLabels },
   };
+}
+
+// Second upgrade path: stores that already ran the migration above got the
+// old bottle/can-based drinks list. Fix the unit (never user-editable, so
+// safe to overwrite) and swap the "(assorted)" Pump/Powerade placeholders
+// for named variants, without touching any stock counts already entered.
+//
+// The two checks are intentionally independent: a user could freely add
+// their own drink item with unit "bottles" via the add-item form, and that
+// alone must never re-trigger appending the named variants again.
+const OLD_DRINK_UNITS = new Set(["bottles", "cans"]);
+const REPLACED_DRINK_NAMES = new Set(["Pump Spring Water (assorted)", "Powerade (assorted)"]);
+
+function hasOldDrinkUnits(state: KitchenState): boolean {
+  return state.items.some((it) => it.categoryId === "drinks" && OLD_DRINK_UNITS.has(it.unit));
+}
+
+function hasReplacedDrinkNames(state: KitchenState): boolean {
+  return state.items.some((it) => it.categoryId === "drinks" && REPLACED_DRINK_NAMES.has(it.name));
+}
+
+function migrateDrinksUnitsAndVariants(state: KitchenState): KitchenState {
+  const shouldAddVariants = hasReplacedDrinkNames(state);
+  const items = state.items
+    .filter((it) => !(it.categoryId === "drinks" && REPLACED_DRINK_NAMES.has(it.name)))
+    .map((it) => (it.categoryId === "drinks" ? { ...it, unit: "packs" } : it));
+  return { ...state, items: shouldAddVariants ? [...items, ...createDrinkVariantAdditions()] : items };
 }
 
 export function useKitchenStorage() {
@@ -39,7 +71,10 @@ export function useKitchenStorage() {
       .then((res) => (res.ok ? (res.json() as Promise<KitchenState>) : Promise.reject(new Error("load failed"))))
       .then((data) => {
         if (cancelled) return;
-        const migrated = migrateState(data);
+        let migrated = migrateState(data);
+        if (hasOldDrinkUnits(migrated) || hasReplacedDrinkNames(migrated)) {
+          migrated = migrateDrinksUnitsAndVariants(migrated);
+        }
         setState(migrated);
         setStatus("saved");
         if (migrated !== data) persist(migrated);
