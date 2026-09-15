@@ -1,12 +1,13 @@
 import type { CategoryId, CategoryLabels, KitchenState, StockItem } from "./types.js";
 
-export const CATEGORY_ORDER: CategoryId[] = ["meats", "cheese", "sauces", "supplies"];
+export const CATEGORY_ORDER: CategoryId[] = ["meats", "cheese", "sauces", "supplies", "drinks"];
 
 export const DEFAULT_CATEGORY_LABELS: CategoryLabels = {
   meats: "Meats & Prep",
   cheese: "Cheese & Cold",
   sauces: "Sauces",
   supplies: "Supplies & Extras",
+  drinks: "Drinks",
 };
 
 const uid = (): string => Math.random().toString(36).slice(2, 10);
@@ -14,6 +15,16 @@ const uid = (): string => Math.random().toString(36).slice(2, 10);
 type SeedItem = Omit<StockItem, "id" | "note" | "locked" | "checkedOverride"> & {
   note?: string;
 };
+
+function hydrateSeedItem(it: SeedItem): StockItem {
+  return {
+    id: uid(),
+    note: it.note ?? "",
+    locked: true,
+    checkedOverride: null,
+    ...it,
+  };
+}
 
 const SEED_ITEMS: SeedItem[] = [
   { name: "Angus beef patties", unit: "box", required: 4, current: 1, categoryId: "meats" },
@@ -74,16 +85,29 @@ const SEED_ITEMS: SeedItem[] = [
     categoryId: "supplies",
     note: "Big bottles",
   },
+  { name: "Coca-Cola Classic", unit: "bottles", required: 4, current: 2, categoryId: "drinks" },
+  { name: "Coca-Cola Zero Sugar", unit: "bottles", required: 4, current: 3, categoryId: "drinks" },
+  { name: "Coca-Cola Vanilla", unit: "bottles", required: 3, current: 1, categoryId: "drinks" },
+  { name: "Sprite", unit: "bottles", required: 4, current: 4, categoryId: "drinks" },
+  { name: "Fanta", unit: "bottles", required: 4, current: 2, categoryId: "drinks" },
+  { name: "Kirks Originals (assorted)", unit: "bottles", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Coca-Cola (cans)", unit: "cans", required: 4, current: 3, categoryId: "drinks" },
+  { name: "Fanta (cans)", unit: "cans", required: 3, current: 1, categoryId: "drinks" },
+  { name: "Mount Franklin Spring Water", unit: "bottles", required: 6, current: 4, categoryId: "drinks" },
+  { name: "Mount Franklin Lightly Sparkling", unit: "bottles", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Pump Spring Water (assorted)", unit: "bottles", required: 3, current: 2, categoryId: "drinks" },
+  { name: "Monster Energy (assorted)", unit: "cans", required: 6, current: 3, categoryId: "drinks" },
+  { name: "Mother Energy", unit: "cans", required: 3, current: 1, categoryId: "drinks" },
+  { name: "Powerade (assorted)", unit: "bottles", required: 4, current: 2, categoryId: "drinks" },
+  { name: "Fuze Tea (assorted)", unit: "bottles", required: 3, current: 2, categoryId: "drinks" },
 ];
 
 export function createSeedItems(): StockItem[] {
-  return SEED_ITEMS.map((it) => ({
-    id: uid(),
-    note: it.note ?? "",
-    locked: true,
-    checkedOverride: null,
-    ...it,
-  }));
+  return SEED_ITEMS.map(hydrateSeedItem);
+}
+
+export function createDrinksSeedItems(): StockItem[] {
+  return SEED_ITEMS.filter((it) => it.categoryId === "drinks").map(hydrateSeedItem);
 }
 
 export function createDefaultState(): KitchenState {
