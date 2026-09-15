@@ -16,6 +16,8 @@ export function ItemRow({ item, onPatch, onRemove }: ItemRowProps) {
   const [editingRequired, setEditingRequired] = useState(false);
   const [requiredDraft, setRequiredDraft] = useState(String(item.required));
   const [justLocked, setJustLocked] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState(item.name);
 
   const meta = STATUS_META[item.status];
   const pct = Math.round(ratioOf(item.current, item.required) * 100);
@@ -45,6 +47,12 @@ export function ItemRow({ item, onPatch, onRemove }: ItemRowProps) {
 
   const toggleCheck = () => onPatch({ checkedOverride: !item.checked });
 
+  const commitName = () => {
+    const trimmed = nameDraft.trim();
+    onPatch({ name: trimmed || item.name });
+    setEditingName(false);
+  };
+
   return (
     <div style={{ ...styles.row, background: meta.bg, borderColor: meta.track }}>
       <button style={styles.removeBtn} onClick={onRemove} title="Remove item" aria-label="Remove item">
@@ -52,7 +60,34 @@ export function ItemRow({ item, onPatch, onRemove }: ItemRowProps) {
       </button>
 
       <div style={styles.rowHeaderLine}>
-        <span style={styles.rowName}>{item.name}</span>
+        {editingName ? (
+          <input
+            autoFocus
+            value={nameDraft}
+            onChange={(e) => setNameDraft(e.target.value)}
+            onFocus={(e) => e.target.select()}
+            onBlur={commitName}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") commitName();
+              if (e.key === "Escape") {
+                setNameDraft(item.name);
+                setEditingName(false);
+              }
+            }}
+            style={styles.rowNameInput}
+          />
+        ) : (
+          <button
+            style={styles.rowNameBtn}
+            onClick={() => {
+              setNameDraft(item.name);
+              setEditingName(true);
+            }}
+            title="Tap to rename"
+          >
+            {item.name}
+          </button>
+        )}
         {item.note ? <span style={styles.rowNote}>{item.note}</span> : null}
       </div>
 
