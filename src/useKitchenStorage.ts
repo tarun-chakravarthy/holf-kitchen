@@ -4,6 +4,7 @@ import {
   createDefaultState,
   createDrinksSeedItems,
   createDrinkVariantAdditions,
+  createDrinkFlavorAdditions,
   DEFAULT_CATEGORY_LABELS,
 } from "./constants";
 
@@ -49,6 +50,20 @@ function migrateDrinksUnitsAndVariants(state: KitchenState): KitchenState {
   return { ...state, items: shouldAddVariants ? [...items, ...createDrinkVariantAdditions()] : items };
 }
 
+// Third upgrade path: replace the remaining "(assorted)" placeholders (Kirks
+// Originals, Monster Energy, Fuze Tea) with named flavors, the same
+// remove-then-add pattern as the Pump/Powerade fix above.
+const OLD_ASSORTED_NAMES = new Set(["Kirks Originals (assorted)", "Monster Energy (assorted)", "Fuze Tea (assorted)"]);
+
+function hasOldAssortedNames(state: KitchenState): boolean {
+  return state.items.some((it) => it.categoryId === "drinks" && OLD_ASSORTED_NAMES.has(it.name));
+}
+
+function migrateDrinkFlavors(state: KitchenState): KitchenState {
+  const items = state.items.filter((it) => !(it.categoryId === "drinks" && OLD_ASSORTED_NAMES.has(it.name)));
+  return { ...state, items: [...items, ...createDrinkFlavorAdditions()] };
+}
+
 export function useKitchenStorage() {
   const [state, setState] = useState<KitchenState>(createDefaultState);
   const [status, setStatus] = useState<SyncStatus>("loading");
@@ -74,6 +89,9 @@ export function useKitchenStorage() {
         let migrated = migrateState(data);
         if (hasOldDrinkUnits(migrated) || hasReplacedDrinkNames(migrated)) {
           migrated = migrateDrinksUnitsAndVariants(migrated);
+        }
+        if (hasOldAssortedNames(migrated)) {
+          migrated = migrateDrinkFlavors(migrated);
         }
         setState(migrated);
         setStatus("saved");
