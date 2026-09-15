@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { CategoryId, DerivedStockItem, OrderRecord, StockItem } from "./types";
 import { CATEGORY_ORDER, STATUS_META, sortDrinksItems } from "./constants";
-import { computeStatus, uid, formatOrderText } from "./utils";
+import { computeStatus, neededQty, uid, formatOrderText } from "./utils";
 import { useKitchenStorage } from "./useKitchenStorage";
 import { exportOrderCsv } from "./exportCsv";
 import { ItemRow } from "./components/ItemRow";
@@ -85,7 +85,7 @@ export default function App() {
 
   const generateOrder = () => {
     const chosen = CATEGORY_ORDER.flatMap((cat) => {
-      const rows = derivedItems.filter((it) => it.checked && it.categoryId === cat);
+      const rows = derivedItems.filter((it) => it.checked && neededQty(it) > 0 && it.categoryId === cat);
       return cat === "drinks" ? sortDrinksItems(rows) : rows;
     });
     const record: OrderRecord = {
@@ -96,7 +96,7 @@ export default function App() {
         unit: it.unit,
         required: it.required,
         current: it.current,
-        needed: Math.max(0, (Number(it.required) || 0) - (Number(it.current) || 0)),
+        needed: neededQty(it),
         status: it.status,
         categoryId: it.categoryId,
       })),
@@ -128,7 +128,7 @@ export default function App() {
     updateItems(items.map((it) => (visibleIds.has(it.id) ? { ...it, checkedOverride: !allVisibleChecked } : it)));
   };
 
-  const checkedCount = derivedItems.filter((it) => it.checked).length;
+  const checkedCount = derivedItems.filter((it) => it.checked && neededQty(it) > 0).length;
   const outCount = derivedItems.filter((it) => it.status === "out").length;
   const unsetCount = derivedItems.filter((it) => it.status === "unset").length;
 
@@ -250,7 +250,7 @@ export default function App() {
 
       <div style={styles.footerBar}>
         <div style={styles.footerCount}>
-          {checkedCount} item{checkedCount === 1 ? "" : "s"} on the order
+          {checkedCount} item{checkedCount === 1 ? "" : "s"} need{checkedCount === 1 ? "s" : ""} ordering
         </div>
         <button
           style={{ ...styles.submitBtn, opacity: checkedCount === 0 ? 0.5 : 1 }}
