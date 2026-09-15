@@ -20,6 +20,8 @@ export const styles: Record<string, CSSProperties> = {
   tab: { background: "var(--card)", border: "1px solid var(--border)", color: "var(--muted)", borderRadius: 20, padding: "6px 13px", fontSize: 13, whiteSpace: "nowrap" },
   tabActive: { background: "var(--header)", color: "#FFFFFF", borderColor: "var(--header)" },
   tabInput: { border: "1.5px solid var(--accent)", borderRadius: 20, padding: "6px 13px", fontSize: 13, minWidth: 90 },
+  selectAllRow: { padding: "6px 16px 0", display: "flex", justifyContent: "flex-start" },
+  selectAllBtn: { background: "none", border: "none", color: "var(--accent)", fontSize: 12.5, fontWeight: 600, padding: 4 },
   columnHeaders: { display: "flex", padding: "8px 20px 2px", gap: 12, fontSize: 10.5, fontWeight: 600, color: "var(--muted)", letterSpacing: 0.4, textTransform: "uppercase" },
   colHeadLeft: { flex: "1 1 0", paddingLeft: 34 },
   colHeadMiddle: { width: 64, textAlign: "center" },

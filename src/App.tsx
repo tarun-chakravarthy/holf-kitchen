@@ -117,6 +117,13 @@ export default function App() {
     rows: derivedItems.filter((it) => it.categoryId === cat),
   }));
   const visibleGroups = activeCategory === "All" ? grouped : grouped.filter((g) => g.category === activeCategory);
+  const visibleItems = visibleGroups.flatMap((g) => g.rows);
+  const allVisibleChecked = visibleItems.length > 0 && visibleItems.every((it) => it.checked);
+
+  const toggleSelectAll = () => {
+    const visibleIds = new Set(visibleItems.map((it) => it.id));
+    updateItems(items.map((it) => (visibleIds.has(it.id) ? { ...it, checkedOverride: !allVisibleChecked } : it)));
+  };
 
   const checkedCount = derivedItems.filter((it) => it.checked).length;
   const outCount = derivedItems.filter((it) => it.status === "out").length;
@@ -159,6 +166,14 @@ export default function App() {
           />
         ))}
       </nav>
+
+      {visibleItems.length > 0 && (
+        <div style={styles.selectAllRow}>
+          <button style={styles.selectAllBtn} onClick={toggleSelectAll}>
+            {allVisibleChecked ? "Unselect all" : "Select all"}
+          </button>
+        </div>
+      )}
 
       <div style={styles.columnHeaders}>
         <span style={styles.colHeadLeft}>Current</span>
