@@ -1,4 +1,4 @@
-export type CategoryId = "meats" | "cheese" | "sauces" | "supplies";
+export type CategoryId = "meats" | "cheese" | "sauces" | "supplies" | "drinks";
 
 export interface StockItem {
   id: string;

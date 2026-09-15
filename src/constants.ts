@@ -1,6 +1,12 @@
 import type { Status } from "./types";
 
-export { CATEGORY_ORDER, DEFAULT_CATEGORY_LABELS, createDefaultState, createSeedItems } from "../shared/kitchenDefaults";
+export {
+  CATEGORY_ORDER,
+  DEFAULT_CATEGORY_LABELS,
+  createDefaultState,
+  createSeedItems,
+  createDrinksSeedItems,
+} from "../shared/kitchenDefaults";
 
 // Standard semantic status colors (not brand colors) — red/amber/green traffic-light convention.
 export const STATUS_META: Record<
