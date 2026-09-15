@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { CategoryId, DerivedStockItem, OrderRecord, StockItem } from "./types";
-import { CATEGORY_ORDER, STATUS_META } from "./constants";
+import { CATEGORY_ORDER, STATUS_META, sortDrinksItems } from "./constants";
 import { computeStatus, uid, formatOrderText } from "./utils";
 import { useKitchenStorage } from "./useKitchenStorage";
 import { exportOrderCsv } from "./exportCsv";
@@ -84,7 +84,10 @@ export default function App() {
   const derivedItems = items.map(withDerived);
 
   const generateOrder = () => {
-    const chosen = derivedItems.filter((it) => it.checked);
+    const chosen = CATEGORY_ORDER.flatMap((cat) => {
+      const rows = derivedItems.filter((it) => it.checked && it.categoryId === cat);
+      return cat === "drinks" ? sortDrinksItems(rows) : rows;
+    });
     const record: OrderRecord = {
       id: uid(),
       timestamp: new Date().toISOString(),
@@ -112,10 +115,10 @@ export default function App() {
     }
   };
 
-  const grouped = CATEGORY_ORDER.map((cat) => ({
-    category: cat,
-    rows: derivedItems.filter((it) => it.categoryId === cat),
-  }));
+  const grouped = CATEGORY_ORDER.map((cat) => {
+    const rows = derivedItems.filter((it) => it.categoryId === cat);
+    return { category: cat, rows: cat === "drinks" ? sortDrinksItems(rows) : rows };
+  });
   const visibleGroups = activeCategory === "All" ? grouped : grouped.filter((g) => g.category === activeCategory);
   const visibleItems = visibleGroups.flatMap((g) => g.rows);
   const allVisibleChecked = visibleItems.length > 0 && visibleItems.every((it) => it.checked);
