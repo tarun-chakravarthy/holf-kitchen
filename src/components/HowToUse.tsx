@@ -4,7 +4,7 @@ const STEPS = [
   "Tap the number to edit how much you have, or use the +/− buttons.",
   "Tap the 🔒 pill to set how much you need (the par level).",
   "Everything's checked by default — uncheck items you don't want to order.",
-  'Tap "Review & export order" to copy the list or download it as CSV.',
+  'Tap "Review & export order" to see just what needs restocking, then copy the list or download it as CSV.',
 ];
 
 interface HowToUseProps {

@@ -22,6 +22,10 @@ export function ratioOf(current: number, required: number | ""): number {
   return Math.min(1, clamp0(Number(current) || 0) / r);
 }
 
+export function neededQty(item: { required: number | ""; current: number }): number {
+  return Math.max(0, (Number(item.required) || 0) - (Number(item.current) || 0));
+}
+
 export function formatOrderText(record: OrderRecord, categoryLabels: CategoryLabels): string {
   const lines = [`ORDER LIST — ${new Date(record.timestamp).toLocaleString()}`, ""];
   for (const cat of CATEGORY_ORDER) {

@@ -8,6 +8,7 @@ export {
   createDrinksSeedItems,
   createDrinkVariantAdditions,
   createDrinkFlavorAdditions,
+  createCokeFamilyBottleCanAdditions,
   sortDrinksItems,
 } from "../shared/kitchenDefaults";
 

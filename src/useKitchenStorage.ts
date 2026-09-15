@@ -5,6 +5,7 @@ import {
   createDrinksSeedItems,
   createDrinkVariantAdditions,
   createDrinkFlavorAdditions,
+  createCokeFamilyBottleCanAdditions,
   DEFAULT_CATEGORY_LABELS,
 } from "./constants";
 
@@ -64,6 +65,28 @@ function migrateDrinkFlavors(state: KitchenState): KitchenState {
   return { ...state, items: [...items, ...createDrinkFlavorAdditions()] };
 }
 
+// Fourth upgrade path: split the Coke/Fanta/Sprite/Kirks lineup into named
+// 600ml bottle and 375ml can variants, same remove-then-add pattern as above.
+const OLD_COKE_FAMILY_NAMES = new Set([
+  "Coca-Cola Classic",
+  "Coca-Cola Zero Sugar",
+  "Coca-Cola Vanilla",
+  "Coca-Cola (cans)",
+  "Fanta",
+  "Fanta (cans)",
+  "Sprite",
+  "Kirks Originals Pasito",
+]);
+
+function hasOldCokeFamilyNames(state: KitchenState): boolean {
+  return state.items.some((it) => it.categoryId === "drinks" && OLD_COKE_FAMILY_NAMES.has(it.name));
+}
+
+function migrateCokeFamilyToBottlesAndCans(state: KitchenState): KitchenState {
+  const items = state.items.filter((it) => !(it.categoryId === "drinks" && OLD_COKE_FAMILY_NAMES.has(it.name)));
+  return { ...state, items: [...items, ...createCokeFamilyBottleCanAdditions()] };
+}
+
 export function useKitchenStorage() {
   const [state, setState] = useState<KitchenState>(createDefaultState);
   const [status, setStatus] = useState<SyncStatus>("loading");
@@ -92,6 +115,9 @@ export function useKitchenStorage() {
         }
         if (hasOldAssortedNames(migrated)) {
           migrated = migrateDrinkFlavors(migrated);
+        }
+        if (hasOldCokeFamilyNames(migrated)) {
+          migrated = migrateCokeFamilyToBottlesAndCans(migrated);
         }
         setState(migrated);
         setStatus("saved");

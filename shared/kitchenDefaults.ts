@@ -85,27 +85,35 @@ const SEED_ITEMS: SeedItem[] = [
     categoryId: "supplies",
     note: "Big bottles",
   },
-  { name: "Coca-Cola Classic", unit: "packs", required: 3, current: 1, categoryId: "drinks" },
-  { name: "Coca-Cola Zero Sugar", unit: "packs", required: 3, current: 2, categoryId: "drinks" },
-  { name: "Coca-Cola Vanilla", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
-  { name: "Coca-Cola (cans)", unit: "packs", required: 3, current: 2, categoryId: "drinks" },
-  { name: "Sprite", unit: "packs", required: 3, current: 3, categoryId: "drinks" },
-  { name: "Fanta", unit: "packs", required: 3, current: 1, categoryId: "drinks" },
-  { name: "Fanta (cans)", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
-  { name: "Kirks Originals Pasito", unit: "packs", required: 1, current: 1, categoryId: "drinks" },
+  // --- Bottles (600ml) ---
+  { name: "Coca-Cola Classic 600ml Bottle", unit: "packs", required: 3, current: 1, categoryId: "drinks" },
+  { name: "Coca-Cola Zero Sugar 600ml Bottle", unit: "packs", required: 3, current: 2, categoryId: "drinks" },
+  { name: "Coca-Cola Vanilla 600ml Bottle", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Fanta Red 600ml Bottle", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Fanta Orange 600ml Bottle", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Sprite 600ml Bottle", unit: "packs", required: 3, current: 3, categoryId: "drinks" },
+  { name: "Kirks Originals Pasito 600ml Bottle", unit: "packs", required: 1, current: 1, categoryId: "drinks" },
   { name: "Mount Franklin Spring Water", unit: "packs", required: 4, current: 3, categoryId: "drinks" },
   { name: "Mount Franklin Lightly Sparkling", unit: "packs", required: 1, current: 1, categoryId: "drinks" },
   { name: "Pump Water Blue", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
   { name: "Pump Water Pink", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Powerade Blue", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Powerade Berry", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Fuze Tea Peach", unit: "packs", required: 1, current: 1, categoryId: "drinks" },
+  { name: "Fuze Tea Lemon", unit: "packs", required: 1, current: 1, categoryId: "drinks" },
+  // --- Cans (375ml) ---
+  { name: "Coca-Cola Classic 375ml Can", unit: "packs", required: 3, current: 2, categoryId: "drinks" },
+  { name: "Coca-Cola Zero Sugar 375ml Can", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Coca-Cola Vanilla 375ml Can", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Fanta Red 375ml Can", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Fanta Orange 375ml Can", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Sprite 375ml Can", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Kirks Originals Pasito 375ml Can", unit: "packs", required: 1, current: 1, categoryId: "drinks" },
   { name: "Monster Energy Original", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
   { name: "Monster Ultra", unit: "packs", required: 1, current: 1, categoryId: "drinks" },
   { name: "Monster Ultra Paradise", unit: "packs", required: 1, current: 0, categoryId: "drinks" },
   { name: "Monster Mango Loco", unit: "packs", required: 1, current: 0, categoryId: "drinks" },
   { name: "Mother Energy", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
-  { name: "Powerade Blue", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
-  { name: "Powerade Berry", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
-  { name: "Fuze Tea Peach", unit: "packs", required: 1, current: 1, categoryId: "drinks" },
-  { name: "Fuze Tea Lemon", unit: "packs", required: 1, current: 1, categoryId: "drinks" },
 ];
 
 // The order drinks should display in, grouped by brand. Anything not listed
@@ -120,17 +128,43 @@ export function sortDrinksItems<T extends { name: string }>(items: T[]): T[] {
   return [...items].sort((a, b) => (rank.get(a.name) ?? DRINKS_DISPLAY_ORDER.length) - (rank.get(b.name) ?? DRINKS_DISPLAY_ORDER.length));
 }
 
-// Names introduced in earlier updates, used to patch stores that already ran
-// an older drinks migration (see useKitchenStorage.ts).
-export const DRINK_VARIANT_ADDITIONS = ["Pump Water Blue", "Pump Water Pink", "Powerade Blue", "Powerade Berry"];
-export const DRINK_FLAVOR_ADDITIONS = [
-  "Kirks Originals Pasito",
-  "Monster Energy Original",
-  "Monster Ultra",
-  "Monster Ultra Paradise",
-  "Monster Mango Loco",
-  "Fuze Tea Peach",
-  "Fuze Tea Lemon",
+// Payloads for one-time upgrade paths in useKitchenStorage.ts. These are kept
+// as standalone item lists (never derived from SEED_ITEMS by name) precisely
+// because SEED_ITEMS keeps changing — e.g. "Kirks Originals Pasito" above is
+// now "Kirks Originals Pasito 600ml Bottle". A historical migration must keep
+// adding exactly what it always added, independent of later renames.
+const DRINK_VARIANT_ADDITION_ITEMS: SeedItem[] = [
+  { name: "Pump Water Blue", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Pump Water Pink", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Powerade Blue", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Powerade Berry", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+];
+
+const DRINK_FLAVOR_ADDITION_ITEMS: SeedItem[] = [
+  { name: "Kirks Originals Pasito", unit: "packs", required: 1, current: 1, categoryId: "drinks" },
+  { name: "Monster Energy Original", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Monster Ultra", unit: "packs", required: 1, current: 1, categoryId: "drinks" },
+  { name: "Monster Ultra Paradise", unit: "packs", required: 1, current: 0, categoryId: "drinks" },
+  { name: "Monster Mango Loco", unit: "packs", required: 1, current: 0, categoryId: "drinks" },
+  { name: "Fuze Tea Peach", unit: "packs", required: 1, current: 1, categoryId: "drinks" },
+  { name: "Fuze Tea Lemon", unit: "packs", required: 1, current: 1, categoryId: "drinks" },
+];
+
+const COKE_FAMILY_BOTTLE_CAN_ITEMS: SeedItem[] = [
+  { name: "Coca-Cola Classic 600ml Bottle", unit: "packs", required: 3, current: 1, categoryId: "drinks" },
+  { name: "Coca-Cola Zero Sugar 600ml Bottle", unit: "packs", required: 3, current: 2, categoryId: "drinks" },
+  { name: "Coca-Cola Vanilla 600ml Bottle", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Fanta Red 600ml Bottle", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Fanta Orange 600ml Bottle", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Sprite 600ml Bottle", unit: "packs", required: 3, current: 3, categoryId: "drinks" },
+  { name: "Kirks Originals Pasito 600ml Bottle", unit: "packs", required: 1, current: 1, categoryId: "drinks" },
+  { name: "Coca-Cola Classic 375ml Can", unit: "packs", required: 3, current: 2, categoryId: "drinks" },
+  { name: "Coca-Cola Zero Sugar 375ml Can", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Coca-Cola Vanilla 375ml Can", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Fanta Red 375ml Can", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Fanta Orange 375ml Can", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Sprite 375ml Can", unit: "packs", required: 2, current: 1, categoryId: "drinks" },
+  { name: "Kirks Originals Pasito 375ml Can", unit: "packs", required: 1, current: 1, categoryId: "drinks" },
 ];
 
 export function createSeedItems(): StockItem[] {
@@ -142,11 +176,15 @@ export function createDrinksSeedItems(): StockItem[] {
 }
 
 export function createDrinkVariantAdditions(): StockItem[] {
-  return SEED_ITEMS.filter((it) => DRINK_VARIANT_ADDITIONS.includes(it.name)).map(hydrateSeedItem);
+  return DRINK_VARIANT_ADDITION_ITEMS.map(hydrateSeedItem);
 }
 
 export function createDrinkFlavorAdditions(): StockItem[] {
-  return SEED_ITEMS.filter((it) => DRINK_FLAVOR_ADDITIONS.includes(it.name)).map(hydrateSeedItem);
+  return DRINK_FLAVOR_ADDITION_ITEMS.map(hydrateSeedItem);
+}
+
+export function createCokeFamilyBottleCanAdditions(): StockItem[] {
+  return COKE_FAMILY_BOTTLE_CAN_ITEMS.map(hydrateSeedItem);
 }
 
 export function createDefaultState(): KitchenState {
