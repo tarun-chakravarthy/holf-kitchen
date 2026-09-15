@@ -26,20 +26,27 @@ function migrateState(state: KitchenState): KitchenState {
 // old bottle/can-based drinks list. Fix the unit (never user-editable, so
 // safe to overwrite) and swap the "(assorted)" Pump/Powerade placeholders
 // for named variants, without touching any stock counts already entered.
+//
+// The two checks are intentionally independent: a user could freely add
+// their own drink item with unit "bottles" via the add-item form, and that
+// alone must never re-trigger appending the named variants again.
 const OLD_DRINK_UNITS = new Set(["bottles", "cans"]);
 const REPLACED_DRINK_NAMES = new Set(["Pump Spring Water (assorted)", "Powerade (assorted)"]);
 
-function needsDrinksUnitFix(state: KitchenState): boolean {
-  return state.items.some(
-    (it) => it.categoryId === "drinks" && (OLD_DRINK_UNITS.has(it.unit) || REPLACED_DRINK_NAMES.has(it.name)),
-  );
+function hasOldDrinkUnits(state: KitchenState): boolean {
+  return state.items.some((it) => it.categoryId === "drinks" && OLD_DRINK_UNITS.has(it.unit));
+}
+
+function hasReplacedDrinkNames(state: KitchenState): boolean {
+  return state.items.some((it) => it.categoryId === "drinks" && REPLACED_DRINK_NAMES.has(it.name));
 }
 
 function migrateDrinksUnitsAndVariants(state: KitchenState): KitchenState {
+  const shouldAddVariants = hasReplacedDrinkNames(state);
   const items = state.items
     .filter((it) => !(it.categoryId === "drinks" && REPLACED_DRINK_NAMES.has(it.name)))
     .map((it) => (it.categoryId === "drinks" ? { ...it, unit: "packs" } : it));
-  return { ...state, items: [...items, ...createDrinkVariantAdditions()] };
+  return { ...state, items: shouldAddVariants ? [...items, ...createDrinkVariantAdditions()] : items };
 }
 
 export function useKitchenStorage() {
@@ -65,7 +72,9 @@ export function useKitchenStorage() {
       .then((data) => {
         if (cancelled) return;
         let migrated = migrateState(data);
-        if (needsDrinksUnitFix(migrated)) migrated = migrateDrinksUnitsAndVariants(migrated);
+        if (hasOldDrinkUnits(migrated) || hasReplacedDrinkNames(migrated)) {
+          migrated = migrateDrinksUnitsAndVariants(migrated);
+        }
         setState(migrated);
         setStatus("saved");
         if (migrated !== data) persist(migrated);
