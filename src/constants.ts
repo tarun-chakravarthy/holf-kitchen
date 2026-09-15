@@ -6,6 +6,7 @@ export {
   createDefaultState,
   createSeedItems,
   createDrinksSeedItems,
+  createDrinkVariantAdditions,
 } from "../shared/kitchenDefaults";
 
 // Standard semantic status colors (not brand colors) — red/amber/green traffic-light convention.
