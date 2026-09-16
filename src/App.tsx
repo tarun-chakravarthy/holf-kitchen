@@ -181,7 +181,7 @@ export default function App() {
       <div style={styles.columnHeaders}>
         <span style={styles.colHeadLeft}>Current</span>
         <span style={styles.colHeadMiddle}>Required</span>
-        <span style={styles.colHeadRight}>Status</span>
+        <span style={styles.colHeadRight}>Stock level</span>
       </div>
 
       <main style={styles.main}>
@@ -264,51 +264,57 @@ export default function App() {
       {orderList && (
         <div style={styles.modalOverlay} onClick={() => setOrderList(null)}>
           <div style={styles.ticket} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.ticketHeader}>
-              <div style={styles.ticketTitle}>ORDER LIST</div>
-              <div style={styles.ticketDate}>
-                {new Date(orderList.timestamp).toLocaleString([], {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+            <div style={styles.ticketHeaderWrap}>
+              <div style={styles.ticketHeader}>
+                <div style={styles.ticketTitle}>ORDER LIST</div>
+                <div style={styles.ticketDate}>
+                  {new Date(orderList.timestamp).toLocaleString([], {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </div>
               </div>
+              <div style={styles.ticketDivider} />
             </div>
-            <div style={styles.ticketDivider} />
-            {CATEGORY_ORDER.filter((cat) => orderList.items.some((it) => it.categoryId === cat)).map((cat) => (
-              <div key={cat} style={{ marginBottom: 14 }}>
-                <div style={styles.ticketCategory}>{categoryLabels[cat]}</div>
-                {orderList.items
-                  .filter((it) => it.categoryId === cat)
-                  .map((it, i) => (
-                    <div key={i} style={styles.ticketRow}>
-                      <span>{it.name}</span>
-                      <span style={styles.ticketQty}>
-                        <span style={{ fontWeight: 700, color: STATUS_META[it.status].color }}>
-                          Order {it.needed} {it.unit}
+            <div style={styles.ticketBody}>
+              {CATEGORY_ORDER.filter((cat) => orderList.items.some((it) => it.categoryId === cat)).map((cat) => (
+                <div key={cat} style={{ marginBottom: 14 }}>
+                  <div style={styles.ticketCategory}>{categoryLabels[cat]}</div>
+                  {orderList.items
+                    .filter((it) => it.categoryId === cat)
+                    .map((it, i) => (
+                      <div key={i} style={styles.ticketRow}>
+                        <span>{it.name}</span>
+                        <span style={styles.ticketQty}>
+                          <span style={{ fontWeight: 700, color: STATUS_META[it.status].color }}>
+                            Order {it.needed} {it.unit}
+                          </span>
+                          <span style={styles.ticketQtySub}>
+                            {it.current === 0 ? "(out of stock)" : `(only ${it.current} left in stock)`}
+                          </span>
                         </span>
-                        <span style={styles.ticketQtySub}>
-                          have {it.current} / need {it.required}
-                        </span>
-                      </span>
-                    </div>
-                  ))}
+                      </div>
+                    ))}
+                </div>
+              ))}
+            </div>
+            <div style={styles.ticketFooter}>
+              <div style={styles.ticketDivider} />
+              <div style={styles.ticketActions}>
+                <button style={styles.ticketCopy} onClick={copyOrder}>
+                  {copied ? "Copied ✓" : "Copy list"}
+                </button>
+                <button style={styles.ticketExport} onClick={() => exportOrderCsv(orderList, categoryLabels)}>
+                  Export CSV
+                </button>
               </div>
-            ))}
-            <div style={styles.ticketDivider} />
-            <div style={styles.ticketActions}>
-              <button style={styles.ticketCopy} onClick={copyOrder}>
-                {copied ? "Copied ✓" : "Copy list"}
-              </button>
-              <button style={styles.ticketExport} onClick={() => exportOrderCsv(orderList, categoryLabels)}>
-                Export CSV
+              <button style={styles.ticketClose} onClick={() => setOrderList(null)}>
+                Close
               </button>
             </div>
-            <button style={styles.ticketClose} onClick={() => setOrderList(null)}>
-              Close
-            </button>
           </div>
         </div>
       )}
