@@ -181,7 +181,7 @@ export default function App() {
       <div style={styles.columnHeaders}>
         <span style={styles.colHeadLeft}>Current</span>
         <span style={styles.colHeadMiddle}>Required</span>
-        <span style={styles.colHeadRight}>Status</span>
+        <span style={styles.colHeadRight}>Stock level</span>
       </div>
 
       <main style={styles.main}>
