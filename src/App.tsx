@@ -290,7 +290,7 @@ export default function App() {
                           Order {it.needed} {it.unit}
                         </span>
                         <span style={styles.ticketQtySub}>
-                          have {it.current} / need {it.required}
+                          {it.current === 0 ? "(out of stock)" : `(only ${it.current} left in stock)`}
                         </span>
                       </span>
                     </div>
