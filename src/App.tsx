@@ -285,8 +285,13 @@ export default function App() {
                   .map((it, i) => (
                     <div key={i} style={styles.ticketRow}>
                       <span>{it.name}</span>
-                      <span style={{ fontWeight: 600, color: STATUS_META[it.status].color }}>
-                        {it.current}/{it.required} {it.unit}
+                      <span style={styles.ticketQty}>
+                        <span style={{ fontWeight: 700, color: STATUS_META[it.status].color }}>
+                          Order {it.needed} {it.unit}
+                        </span>
+                        <span style={styles.ticketQtySub}>
+                          have {it.current} / need {it.required}
+                        </span>
                       </span>
                     </div>
                   ))}
