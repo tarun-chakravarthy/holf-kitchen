@@ -33,7 +33,8 @@ export function formatOrderText(record: OrderRecord, categoryLabels: CategoryLab
     if (rows.length === 0) continue;
     lines.push(categoryLabels[cat].toUpperCase());
     for (const it of rows) {
-      lines.push(`  - ${it.name}: ${it.current}/${it.required} ${it.unit} (need ${it.needed})`);
+      const stock = it.current === 0 ? "out of stock" : `only ${it.current} left in stock`;
+      lines.push(`  - ${it.name}: Order ${it.needed} ${it.unit} (${stock})`);
     }
     lines.push("");
   }
